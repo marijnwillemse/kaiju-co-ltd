@@ -3,19 +3,87 @@ version 18
 __lua__
 -- kaiju-co-ltd
 
+entities={}
+
 function _init()
- monster={}
+ e = entity:new()
+ 
+	m = {
+		["items"] = {
+		 ["staff"] = staff_menu(),
+		 ["work"] = work_menu()
+		}
+	}
+
+	print(type(m))
+	
+	print(#m)
+ iter = menu_iter(m)
+ 
+ while true do
+  local element = iter()
+  if element==nil then break end
+   print(element)
+ end
 end
 
-
 function _update()
+ for e in all(entities) do
+--  e:update()
+ end
+end
+
+function _draw()
+-- cls()
+-- spr(1,0,0)
+end
+
+-->8
+--entities
+
+uid = {n = 0}
+function uid.get()
+ uid.n += 1
+ return uid.n
+end
+
+entity = {}
+
+function entity:new(o)
+ o=o or {} --create if null
+ setmetatable(o, self)
+ self.__index=self
+ self.id=uid.get()
+ add(entities,o)
+ return o
+end
+
+function entity:update()
  --do nothing
 end
 
+function entity:draw()
+ --do nothing
+end
 
-function _draw()
- cls()
- spr(1,0,0)
+-->8
+--menu
+
+function staff_menu()
+end
+
+function work_menu()
+end
+
+
+function menu_iter(t)
+	local i = 0
+	local n = #t.items
+	return function()
+  i = i + 1
+  if i <= n then
+   return t.items[i] end
+ end
 end
 
 __gfx__
