@@ -4,38 +4,41 @@ __lua__
 -- kaiju-co-ltd
 
 entities={}
+submenus={}
 
 function _init()
+
  e = entity:new()
- 
-	m = {
-		["items"] = {
-		 ["staff"] = staff_menu(),
-		 ["work"] = work_menu()
+
+	m = menu.create{
+	 initial = "staff",
+		items = {
+			["staff"] = submenus["staff"],
+			["work"] = submenus["work"],
+			["settings"] = submenus["settings"]
 		}
 	}
-
-	print(type(m))
 	
-	print(#m)
- iter = menu_iter(m)
- 
- while true do
-  local element = iter()
-  if element==nil then break end
-   print(element)
- end
+-- for k, v in pairs(m.items) do
+--  print(k .. "|" .. v)
+-- end
 end
 
 function _update()
  for e in all(entities) do
 --  e:update()
  end
+ 
+ if btnp(⬆️) then m:traverse(⬆️) end
+ if btnp(⬇️) then m:traverse(⬇️) end
+ if btnp(❎) then m:select() end
 end
 
 function _draw()
--- cls()
--- spr(1,0,0)
+ cls()
+ spr(1,0,0)
+ 
+ m:draw()
 end
 
 -->8
@@ -66,25 +69,99 @@ function entity:draw()
  --do nothing
 end
 
+
 -->8
 --menu
 
-function staff_menu()
+menu={}
+menu.__index = menu
+
+--options
+function menu.create(o)
+ assert(o.items)
+ 
+ local m = {}
+ setmetatable(m, menu)
+ 
+ m.items = {}
+ m.refs = {}
+ m.i = 1
+ 
+ local i = 0
+ for k, v in pairs(o.items) do
+  i+=1
+  m.items[i] = k
+  m.refs[k] = v
+  if m.items[i] == o.initial then m.i = i end  
+ end
+ 
+ m.n = i
+
+ return m
 end
 
-function work_menu()
+function menu:current()
+ return m.items[self.i]
 end
 
-
-function menu_iter(t)
-	local i = 0
-	local n = #t.items
-	return function()
-  i = i + 1
-  if i <= n then
-   return t.items[i] end
+function menu:print()
+ local i=1
+ for n in all(self.items) do
+  if n==self:current() then print(">" .. n)
+  else print(n) end
  end
 end
+
+function menu:traverse(d)
+ if d==⬆️ and self.i > 1 then
+  self.i -= 1
+ end
+
+ if d==⬇️ and self.i < self.n then
+  self.i += 1
+ end
+ 
+ self:print()
+end
+
+function menu:select()
+ o=self.refs[self:current()]
+ printh(o.name)
+end
+
+function menu:draw()
+ local x = 8
+ local y = 100
+ for n in all(self.items) do
+  if n==self:current() then print(">", x-4, y) end
+  print(n, x, y)
+  y+=6
+ end
+end
+-->8
+--submenus
+
+submenu = {name="none"}
+
+function submenu:new(o)
+ o=o or {} --create if null
+ setmetatable(o, self)
+ self.__index=self
+ add(submenus,o)
+ return o
+end
+
+function submenu:update()
+ --do nothing
+end
+
+function submenu:draw()
+ --do nothing
+end
+
+submenus.staff = submenu:new{name="staff"}
+submenus.work = submenu:new{name="work"}
+submenus.settings = submenu:new{name="settings"}
 
 __gfx__
 000000000a0000a000cccc00880000880e0000e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
